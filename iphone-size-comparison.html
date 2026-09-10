@@ -1,0 +1,472 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Duo Overlay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#F3F4F7; --surface:#FFFFFF; --surface-2:#E9EBF0;
+  --ink:#15181E; --ink-2:#4A5160; --ink-3:#8B92A1;
+  --line:#D6DAE2; --line-2:#E7EAF0;
+  --duo:#E14E27;
+  --c1:#1E8B8B; --c2:#5A5CDF; --c3:#C4860F; --c4:#C93D6E; --c5:#3B9752; --c6:#7A66B9;
+  --focus:#5A5CDF;
+  --display:"Bricolage Grotesque","Helvetica Neue",Arial,sans-serif;
+  --body:"IBM Plex Sans","Helvetica Neue",Arial,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#101318; --surface:#171B22; --surface-2:#1F242D;
+    --ink:#EDEFF3; --ink-2:#B2B9C6; --ink-3:#7A8292;
+    --line:#2A303B; --line-2:#212730;
+    --duo:#FF6B3F;
+    --c1:#3FBBBB; --c2:#8C8EFF; --c3:#E7AB35; --c4:#EA6796; --c5:#5FC277; --c6:#A898E8;
+    --focus:#8C8EFF;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#101318; --surface:#171B22; --surface-2:#1F242D;
+  --ink:#EDEFF3; --ink-2:#B2B9C6; --ink-3:#7A8292;
+  --line:#2A303B; --line-2:#212730;
+  --duo:#FF6B3F;
+  --c1:#3FBBBB; --c2:#8C8EFF; --c3:#E7AB35; --c4:#EA6796; --c5:#5FC277; --c6:#A898E8;
+  --focus:#8C8EFF;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--body);-webkit-font-smoothing:antialiased}
+a{color:inherit}
+button,select{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:4px}
+
+.wrap{max-width:1280px;margin:0 auto;padding:28px 24px 48px}
+header{display:flex;flex-wrap:wrap;gap:18px 40px;align-items:flex-end;justify-content:space-between;margin-bottom:22px}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(28px,4vw,40px);line-height:1.05;letter-spacing:-.02em;margin:0 0 6px;text-wrap:balance}
+.sub{margin:0;color:var(--ink-2);max-width:56ch}
+.duo-facts{display:grid;grid-template-columns:repeat(4,auto);gap:0 22px;padding:12px 16px;border-left:3px solid var(--duo);background:var(--surface);border-radius:0 8px 8px 0}
+.duo-facts div{display:flex;flex-direction:column}
+.duo-facts .k{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+.duo-facts .v{font-family:var(--mono);font-size:14px;color:var(--ink);white-space:nowrap}
+
+.layout{display:grid;grid-template-columns:270px minmax(0,1fr);gap:22px;align-items:start}
+@media (max-width:900px){.layout{grid-template-columns:1fr}.duo-facts{grid-template-columns:repeat(2,auto)}}
+
+aside{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;position:sticky;top:16px;max-height:calc(100vh - 32px);overflow:auto}
+@media (max-width:900px){aside{position:static;max-height:none}}
+.aside-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px}
+.aside-head h2{font-family:var(--display);font-size:16px;font-weight:700;margin:0}
+.clear{font-size:12px;color:var(--ink-2);text-decoration:underline;text-underline-offset:3px}
+.hint{font-size:12px;color:var(--ink-3)}
+.group{margin-top:12px}
+.group h3{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin:0 0 6px;font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:7px;padding:5px 10px 5px 8px;border:1px solid var(--line);border-radius:999px;font-size:13px;background:var(--surface);color:var(--ink-2);transition:border-color .12s,background .12s}
+.chip:hover{border-color:var(--ink-3);color:var(--ink)}
+.chip .dot{width:9px;height:9px;border-radius:50%;background:var(--line);flex:none}
+.chip[aria-pressed="true"]{color:var(--ink);border-color:var(--sw);background:color-mix(in srgb,var(--sw) 12%,var(--surface))}
+.chip[aria-pressed="true"] .dot{background:var(--sw)}
+
+.controls{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;margin-bottom:12px}
+.ctl{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-2)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden;background:var(--surface)}
+.seg button{padding:6px 12px;font-size:13px;color:var(--ink-2);border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.seg button:disabled{opacity:.4;cursor:not-allowed}
+.seg button:focus-visible{outline-offset:-2px;border-radius:0}
+select.ref{padding:6px 28px 6px 10px;border:1px solid var(--line);border-radius:7px;background:var(--surface);font-size:13px;color:var(--ink);appearance:none;-webkit-appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--ink-3) 50%),linear-gradient(135deg,var(--ink-3) 50%,transparent 50%);background-position:calc(100% - 14px) 55%,calc(100% - 10px) 55%;background-size:4px 4px;background-repeat:no-repeat}
+
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px 18px 10px}
+.stage svg{display:block;width:100%;height:auto;max-height:68vh;margin:0 auto}
+.stage .ph{transition:fill-opacity .12s}
+.stage .ph.dim{fill-opacity:.05}
+.stage .ph.hot{fill-opacity:.32}
+.stage .dm{transition:opacity .12s}
+.stage .dm.dim{opacity:.22}
+.empty{padding:60px 20px;text-align:center;color:var(--ink-3)}
+.legend{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 4px}
+.lg{display:inline-flex;align-items:center;gap:8px;padding:5px 8px 5px 10px;border-radius:999px;border:1px solid var(--line);font-size:13px;background:var(--surface)}
+.lg .sw{width:12px;height:12px;border-radius:3px;background:color-mix(in srgb,var(--sw) 30%,transparent);border:1.5px solid var(--sw);flex:none}
+.lg .ref{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--sw);font-weight:600}
+.lg .x{width:18px;height:18px;border-radius:50%;display:grid;place-items:center;color:var(--ink-3);font-size:14px;line-height:1}
+.lg .x:hover{background:var(--surface-2);color:var(--ink)}
+.lg:hover,.lg.hot{border-color:var(--sw)}
+.legend-hint{font-size:12px;color:var(--ink-3);margin:6px 0 4px}
+
+.below{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;margin-top:22px}
+@media (max-width:1100px){.below{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+.panel h2{font-family:var(--display);font-size:17px;font-weight:700;margin:0 0 2px}
+.panel .note{font-size:12.5px;color:var(--ink-3);margin:0 0 12px}
+.bars{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:7px 12px;align-items:center}
+.bars .n{font-size:13px;color:var(--ink-2);white-space:nowrap}
+.bars .n.hot{color:var(--ink);font-weight:600}
+.bars .t{height:14px;background:var(--surface-2);border-radius:3px;overflow:hidden}
+.bars .f{height:100%;background:var(--sw);border-radius:3px;transition:width .25s}
+.bars .v{font-family:var(--mono);font-size:13px;text-align:right;white-space:nowrap}
+
+.tblwrap{overflow-x:auto;margin-top:22px}
+table{border-collapse:collapse;width:100%;font-size:13.5px;background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+th,td{padding:9px 12px;text-align:right;border-bottom:1px solid var(--line-2);white-space:nowrap}
+th{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600;background:var(--surface)}
+th.l,td.l{text-align:left}
+td{font-family:var(--mono);font-variant-numeric:tabular-nums}
+td.l{font-family:var(--body);font-weight:500}
+td.l .sw{display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--sw);margin-right:8px;vertical-align:-1px}
+td.l .tag{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--sw);font-weight:600;margin-left:8px}
+tr:last-child td{border-bottom:0}
+tr.hot td{background:color-mix(in srgb,var(--sw) 8%,var(--surface))}
+td.d{color:var(--ink-2)}
+td.d.pos::before{content:"+"}
+th.grp,td.grp{border-left:1px solid var(--line)}
+
+footer{margin-top:28px;font-size:12.5px;color:var(--ink-3);max-width:80ch}
+footer a{color:var(--ink-2)}
+
+@media (prefers-reduced-motion: reduce){*{transition:none !important}}
+</style>
+
+<div class="wrap">
+<header>
+  <div>
+    <h1>Duo Overlay</h1>
+    <p class="sub">Any iPhone since the 11, including the folding iPhone Duo, laid over each other at one shared scale. Pick phones on the left, choose which one the deltas measure against, and hover any outline to single it out.</p>
+  </div>
+  <div class="duo-facts" aria-label="iPhone Duo key specs">
+    <div><span class="k">Duo folded</span><span class="v">117.8 × 84.1 × 11.3 mm</span></div>
+    <div><span class="k">Duo unfolded</span><span class="v">117.8 × 164.6 × 5.2 mm</span></div>
+    <div><span class="k">Weight</span><span class="v">254 g</span></div>
+    <div><span class="k">Displays</span><span class="v">5.4″ cover · 7.6″ inner</span></div>
+  </div>
+</header>
+
+<div class="layout">
+  <aside>
+    <div class="aside-head">
+      <h2>Phones</h2>
+      <button class="clear" id="clear">Clear</button>
+    </div>
+    <div class="hint">Up to 7 at a time. The oldest pick drops off when you add an 8th.</div>
+    <div id="picker"></div>
+  </aside>
+
+  <main>
+    <div class="controls">
+      <div class="ctl"><label for="ref">Measure against</label>
+        <select class="ref" id="ref" aria-label="Reference phone for deltas"></select>
+      </div>
+      <div class="ctl"><span>Duo</span>
+        <div class="seg" role="group" aria-label="Duo state">
+          <button data-duo="folded">Folded</button>
+          <button data-duo="unfolded">Unfolded</button>
+        </div>
+      </div>
+      <div class="ctl">
+        <div class="seg" role="group" aria-label="Duo orientation">
+          <button id="rotate" aria-pressed="false" title="Stand the open Duo on its short edge">Rotate 90°</button>
+        </div>
+      </div>
+      <div class="ctl"><span>Align</span>
+        <div class="seg" role="group" aria-label="Alignment">
+          <button data-anchor="bottom">Bottom</button>
+          <button data-anchor="center">Center</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div id="svgwrap"></div>
+      <div class="legend" id="legend"></div>
+      <p class="legend-hint">Click a legend chip to measure against that phone. Solid outline is the body, dashed rectangle is the screen. Dimension lines are stacked largest-outermost, in each phone's colour.</p>
+    </div>
+
+    <div class="below">
+      <section class="panel">
+        <h2>Thickness</h2>
+        <p class="note">Own scale, since a few millimetres is a hairline on the outline above.</p>
+        <div class="bars" id="depthbars"></div>
+      </section>
+      <section class="panel">
+        <h2>Weight</h2>
+        <p class="note">Apple's US figures.</p>
+        <div class="bars" id="weightbars"></div>
+      </section>
+      <section class="panel">
+        <h2>Screen</h2>
+        <p class="note">Bars show active area, from the marketed diagonal and panel aspect ratio. Dashed rectangles above are the same screens.</p>
+        <div class="bars" id="screenbars"></div>
+      </section>
+    </div>
+
+    <div class="tblwrap">
+      <table>
+        <thead>
+          <tr>
+            <th class="l">Phone</th><th>Height</th><th>Width</th><th>Depth</th><th>Weight</th><th>Screen</th><th>Screen area</th>
+            <th class="grp">Δ Height</th><th>Δ Width</th><th>Δ Depth</th><th>Δ Weight</th><th>Δ Screen</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<footer>
+  Dimensions are Apple's published tech specs, retrieved 10 Sept 2026: <a href="https://www.apple.com/iphone-duo/specs/">iPhone Duo</a> and the <a href="https://www.apple.com/iphone/compare/">iPhone compare page</a>. iPhone 18 Pro and Pro Max were announced alongside the Duo on 9 Sept 2026. Body outlines are rounded rectangles with approximate corner radii. Screen rectangles are computed from the marketed diagonal and panel aspect ratio (19.5:9 for Face ID iPhones, 16:9 for the SE, pixel counts for the Duo), centred in the body, so bezel placement is approximate.
+</footer>
+</div>
+
+<script>
+const DUO_NAME = "iPhone Duo";
+const PHONES = [
+  {name:"iPhone 11",year:2019,h:150.9,w:75.7,d:8.3,weight:194,screen:6.1},
+  {name:"iPhone 11 Pro",year:2019,h:144.0,w:71.4,d:8.1,weight:188,screen:5.8},
+  {name:"iPhone 11 Pro Max",year:2019,h:158.0,w:77.8,d:8.1,weight:226,screen:6.5},
+  {name:"iPhone SE (2nd gen)",year:2020,h:138.4,w:67.3,d:7.3,weight:148,screen:4.7,se:true},
+  {name:"iPhone 12 mini",year:2020,h:131.5,w:64.2,d:7.4,weight:135,screen:5.4},
+  {name:"iPhone 12",year:2020,h:146.7,w:71.5,d:7.4,weight:164,screen:6.1},
+  {name:"iPhone 12 Pro",year:2020,h:146.7,w:71.5,d:7.4,weight:189,screen:6.1},
+  {name:"iPhone 12 Pro Max",year:2020,h:160.8,w:78.1,d:7.4,weight:228,screen:6.7},
+  {name:"iPhone 13 mini",year:2021,h:131.5,w:64.2,d:7.65,weight:141,screen:5.4},
+  {name:"iPhone 13",year:2021,h:146.7,w:71.5,d:7.65,weight:174,screen:6.1},
+  {name:"iPhone 13 Pro",year:2021,h:146.7,w:71.5,d:7.65,weight:204,screen:6.1},
+  {name:"iPhone 13 Pro Max",year:2021,h:160.8,w:78.1,d:7.65,weight:240,screen:6.7},
+  {name:"iPhone SE (3rd gen)",year:2022,h:138.4,w:67.3,d:7.3,weight:144,screen:4.7,se:true},
+  {name:"iPhone 14",year:2022,h:146.7,w:71.5,d:7.8,weight:172,screen:6.1},
+  {name:"iPhone 14 Plus",year:2022,h:160.8,w:78.1,d:7.8,weight:203,screen:6.7},
+  {name:"iPhone 14 Pro",year:2022,h:147.5,w:71.5,d:7.85,weight:206,screen:6.1},
+  {name:"iPhone 14 Pro Max",year:2022,h:160.7,w:77.6,d:7.85,weight:240,screen:6.7},
+  {name:"iPhone 15",year:2023,h:147.6,w:71.6,d:7.8,weight:171,screen:6.1},
+  {name:"iPhone 15 Plus",year:2023,h:160.9,w:77.8,d:7.8,weight:201,screen:6.7},
+  {name:"iPhone 15 Pro",year:2023,h:146.6,w:70.6,d:8.25,weight:187,screen:6.1},
+  {name:"iPhone 15 Pro Max",year:2023,h:159.9,w:76.7,d:8.25,weight:221,screen:6.7},
+  {name:"iPhone 16",year:2024,h:147.6,w:71.6,d:7.8,weight:170,screen:6.1},
+  {name:"iPhone 16 Plus",year:2024,h:160.9,w:77.8,d:7.8,weight:199,screen:6.7},
+  {name:"iPhone 16 Pro",year:2024,h:149.6,w:71.5,d:8.25,weight:199,screen:6.3},
+  {name:"iPhone 16 Pro Max",year:2024,h:163.0,w:77.6,d:8.25,weight:227,screen:6.9},
+  {name:"iPhone 16e",year:2025,h:146.7,w:71.5,d:7.8,weight:167,screen:6.1},
+  {name:"iPhone 17",year:2025,h:149.6,w:71.5,d:7.95,weight:177,screen:6.3},
+  {name:"iPhone Air",year:2025,h:156.2,w:74.7,d:5.64,weight:165,screen:6.5},
+  {name:"iPhone 17 Pro",year:2025,h:150.0,w:71.9,d:8.75,weight:206,screen:6.3},
+  {name:"iPhone 17 Pro Max",year:2025,h:163.4,w:78.0,d:8.75,weight:233,screen:6.9},
+  {name:"iPhone 17e",year:2026,h:146.7,w:71.5,d:7.8,weight:169,screen:6.1},
+  {name:DUO_NAME,year:2026,duo:true,weight:254,screen:"5.4 / 7.6",folded:{h:117.8,w:84.1,d:11.3},unfolded:{h:117.8,w:164.6,d:5.2}},
+  {name:"iPhone 18 Pro",year:2026,h:150.0,w:71.9,d:8.75,weight:211,screen:6.3},
+  {name:"iPhone 18 Pro Max",year:2026,h:163.4,w:78.0,d:8.75,weight:249,screen:6.9},
+];
+const byName = Object.fromEntries(PHONES.map(p=>[p.name,p]));
+const MAX = 7;
+const DEFAULT = {sel:[DUO_NAME,"iPhone 18 Pro Max","iPhone 13 mini","iPhone Air"], ref:DUO_NAME, duo:"folded", rotate:false, anchor:"bottom"};
+
+let state = {...DEFAULT};
+try {
+  const s = JSON.parse(localStorage.getItem("duo-overlay-v2") || "null");
+  if (s && Array.isArray(s.sel)) state = {...DEFAULT, ...s, sel: s.sel.filter(n=>byName[n]).slice(-MAX)};
+} catch (e) {}
+let hover = null;
+
+function save(){ try { localStorage.setItem("duo-overlay-v2", JSON.stringify(state)); } catch (e) {} }
+const fmt = n => (Math.round(n*100)/100).toString();
+const esc = s => String(s).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+// Screen rectangle from the marketed diagonal and the panel's aspect ratio (width / height).
+// Face ID iPhones are 19.5:9, the SE is 16:9, the Duo's panels come from their pixel counts.
+const IN = 25.4;
+function screenBox(diag, aspect, rot){
+  const h = diag*IN / Math.sqrt(1 + aspect*aspect), w = aspect*h;
+  return { sw: rot ? h : w, sh: rot ? w : h, diag, area: Math.round(w*h/100) };
+}
+
+// Resolve a phone name into a drawable record: geometry, colour, label.
+function items(){
+  let ci = 0;
+  return state.sel.map(n=>{
+    const p = byName[n];
+    if (p.duo){
+      const b = p[state.duo];
+      const open = state.duo==="unfolded";
+      const rot = open && state.rotate;
+      const scr = open ? screenBox(7.6, 1878/2670, rot) : screenBox(5.4, 1398/2034, false);
+      return {
+        key:n, name:n, color:"var(--duo)", rx:9.3, hinge:open, rot, srx:4,
+        h: rot ? b.w : b.h, w: rot ? b.h : b.w, d:b.d, weight:p.weight, screen: open ? 7.6 : 5.4, ...scr,
+        label: state.duo==="folded" ? "iPhone Duo, folded" : ("iPhone Duo, unfolded" + (rot ? ", rotated" : "")),
+      };
+    }
+    const color = `var(--c${(ci++ % 6)+1})`;
+    return {...p, key:n, label:n, color, rx:(p.se?0.09:0.13)*p.w, srx:(p.se?0:0.11)*p.w, ...screenBox(p.screen, p.se ? 9/16 : 9/19.5, false)};
+  });
+}
+function colorFor(name){ return items().find(p=>p.key===name)?.color || ""; }
+
+function refKey(){
+  if (state.sel.includes(state.ref)) return state.ref;
+  return state.sel[0] || null;
+}
+
+function renderPicker(){
+  const years = [...new Set(PHONES.map(p=>p.year))].sort((a,b)=>b-a);
+  const its = items();
+  document.getElementById("picker").innerHTML = years.map(y=>`
+    <section class="group"><h3>${y}</h3><div class="chips">${
+      PHONES.filter(p=>p.year===y).map(p=>{
+        const it = its.find(i=>i.key===p.name);
+        return `<button class="chip" data-name="${esc(p.name)}" aria-pressed="${!!it}" style="${it?`--sw:${it.color}`:""}"><span class="dot"></span>${esc(p.name)}</button>`;
+      }).join("")
+    }</div></section>`).join("");
+}
+
+function renderStage(){
+  const its = items();
+  const legend = document.getElementById("legend");
+  const wrap = document.getElementById("svgwrap");
+  if (!its.length){
+    wrap.innerHTML = `<div class="empty">Pick at least one phone on the left.</div>`;
+    legend.innerHTML = "";
+    return;
+  }
+  const ref = refKey();
+  const n = its.length, STEP = 6.5;
+  const maxW = Math.max(...its.map(p=>p.w)), maxH = Math.max(...its.map(p=>p.h));
+  const PAD = 6, RIGHT = 6 + n*STEP + 2, BOTTOM = 4 + n*STEP + 2;
+  const VW = maxW + PAD*2 + RIGHT, VH = maxH + PAD*2 + BOTTOM;
+  const pos = p => ({
+    x: PAD + (maxW - p.w)/2,
+    y: state.anchor==="bottom" ? PAD + (maxH - p.h) : PAD + (maxH - p.h)/2,
+  });
+
+  // Outlines: biggest first so smaller ones stay visible; the reference phone always on top.
+  const order = [...its].sort((a,b)=>(a.key===ref)-(b.key===ref) || (b.w*b.h - a.w*a.h));
+  const rects = order.map(p=>{
+    const {x,y} = pos(p);
+    const isRef = p.key===ref;
+    const cls = "ph" + (hover ? (p.key===hover ? " hot" : " dim") : "");
+    let hinge = "";
+    if (p.hinge){
+      hinge = p.rot
+        ? `<line x1="${x}" y1="${y+p.h/2}" x2="${x+p.w}" y2="${y+p.h/2}" stroke="${p.color}" stroke-width=".5" stroke-dasharray="2 1.5" opacity=".7"/>`
+        : `<line x1="${x+p.w/2}" y1="${y}" x2="${x+p.w/2}" y2="${y+p.h}" stroke="${p.color}" stroke-width=".5" stroke-dasharray="2 1.5" opacity=".7"/>`;
+    }
+    const sx = x + (p.w - p.sw)/2, sy = y + (p.h - p.sh)/2;
+    return `<g data-key="${esc(p.key)}" style="cursor:default">
+      <rect class="${cls}" x="${x}" y="${y}" width="${p.w}" height="${p.h}" rx="${p.rx}" ry="${p.rx}"
+        fill="${p.color}" fill-opacity=".14" stroke="${p.color}" stroke-width="${isRef?1.1:.7}"/>
+      <rect class="dm${hover && hover!==p.key ? " dim" : ""}" x="${sx}" y="${sy}" width="${p.sw}" height="${p.sh}" rx="${p.srx}" ry="${p.srx}"
+        fill="none" stroke="${p.color}" stroke-width=".35" stroke-dasharray="1.2 1" opacity=".8"/>${hinge}</g>`;
+  }).join("");
+
+  // Dimension lines for every phone, stacked with the largest outermost.
+  const tick = .9;
+  const byW = [...its].sort((a,b)=>a.w-b.w), byH = [...its].sort((a,b)=>a.h-b.h);
+  const dims = its.map(p=>{
+    const f = pos(p);
+    const yW = maxH + PAD + 4 + byW.indexOf(p)*STEP + STEP*0.5;
+    const xH = maxW + PAD + 4 + byH.indexOf(p)*STEP + STEP*0.5;
+    const cls = "dm" + (hover && hover!==p.key ? " dim" : "");
+    return `<g class="${cls}" data-key="${esc(p.key)}">
+      <g fill="none" stroke="${p.color}" stroke-width=".4">
+        <line x1="${f.x}" y1="${yW}" x2="${f.x+p.w}" y2="${yW}"/>
+        <line x1="${f.x}" y1="${yW-tick}" x2="${f.x}" y2="${yW+tick}"/>
+        <line x1="${f.x+p.w}" y1="${yW-tick}" x2="${f.x+p.w}" y2="${yW+tick}"/>
+        <line x1="${xH}" y1="${f.y}" x2="${xH}" y2="${f.y+p.h}"/>
+        <line x1="${xH-tick}" y1="${f.y}" x2="${xH+tick}" y2="${f.y}"/>
+        <line x1="${xH-tick}" y1="${f.y+p.h}" x2="${xH+tick}" y2="${f.y+p.h}"/>
+      </g>
+      <g font-family="IBM Plex Mono, Menlo, monospace" font-size="3.4" font-weight="500" fill="${p.color}">
+        <rect x="${f.x+p.w/2-8}" y="${yW-2.2}" width="16" height="4.4" fill="var(--surface)" rx=".6"/>
+        <text x="${f.x+p.w/2}" y="${yW+1.2}" text-anchor="middle">${fmt(p.w)}</text>
+        <rect x="${xH-2.2}" y="${f.y+p.h/2-8}" width="4.4" height="16" fill="var(--surface)" rx=".6"/>
+        <text transform="translate(${xH+1.2} ${f.y+p.h/2}) rotate(-90)" text-anchor="middle">${fmt(p.h)}</text>
+      </g>
+    </g>`;
+  }).join("");
+
+  // Name label for the hovered phone only, so labels never pile up.
+  const hot = its.find(p=>p.key===hover);
+  const nameLabel = hot ? (()=>{ const f = pos(hot); return `<text x="${f.x+2}" y="${Math.max(f.y-1.5, 3.5)}" font-family="IBM Plex Sans, Arial, sans-serif" font-size="4.2" font-weight="600" fill="${hot.color}">${esc(hot.label)}</text>`; })() : "";
+
+  wrap.innerHTML = `<svg viewBox="0 0 ${VW} ${VH}" role="img" aria-label="Outlines of the selected iPhones overlaid at one scale, with width and height in millimetres">${rects}${dims}${nameLabel}</svg>`;
+
+  legend.innerHTML = its.map(p=>`
+    <span class="lg${hover===p.key?" hot":""}" data-key="${esc(p.key)}" style="--sw:${p.color}">
+      <button data-setref="${esc(p.key)}" style="display:inline-flex;align-items:center;gap:8px" title="Measure against ${esc(p.name)}">
+        <span class="sw"></span>${esc(p.label)}${p.key===ref ? `<span class="ref">ref</span>` : ""}
+      </button>
+      <button class="x" data-remove="${esc(p.key)}" aria-label="Remove ${esc(p.name)}">×</button>
+    </span>`).join("");
+}
+
+function bars(id, all, key, valueOf){
+  const max = Math.max(...all.map(p=>p[key]));
+  document.getElementById(id).innerHTML = all.map(p=>`
+    <span class="n${hover===p.key?" hot":""}" data-key="${esc(p.key)}">${esc(p.label)}</span>
+    <span class="t"><span class="f" style="--sw:${p.color};width:${(p[key]/max*100).toFixed(1)}%"></span></span>
+    <span class="v">${valueOf(p)}</span>`).join("");
+}
+
+function renderBelow(){
+  const its = items(), ref = refKey();
+  const r = its.find(p=>p.key===ref);
+  bars("depthbars", its, "d", p=>`${fmt(p.d)} mm`);
+  bars("weightbars", its, "weight", p=>`${p.weight} g`);
+  bars("screenbars", its, "area", p=>`${p.screen}″ · ${p.area} cm²`);
+  document.getElementById("tbody").innerHTML = its.map(p=>{
+    const isRef = p.key===ref;
+    const dcell = (v, u, extra="") => isRef ? `<td class="d${extra}">—</td>` : `<td class="d${extra}${v>0?" pos":""}">${fmt(v)} ${u}</td>`;
+    return `<tr class="${hover===p.key?"hot":""}" data-key="${esc(p.key)}" style="--sw:${p.color}">
+      <td class="l"><span class="sw"></span>${esc(p.label)}${isRef?`<span class="tag">ref</span>`:""}</td>
+      <td>${fmt(p.h)} mm</td><td>${fmt(p.w)} mm</td><td>${fmt(p.d)} mm</td><td>${p.weight} g</td><td>${p.screen}″</td><td>${p.area} cm²</td>
+      ${dcell(p.h-r.h,"mm"," grp")}${dcell(p.w-r.w,"mm")}${dcell(p.d-r.d,"mm")}${dcell(p.weight-r.weight,"g")}${dcell(p.area-r.area,"cm²")}
+    </tr>`;
+  }).join("");
+}
+
+function renderControls(){
+  const its = items(), ref = refKey();
+  const sel = document.getElementById("ref");
+  sel.innerHTML = its.length
+    ? its.map(p=>`<option value="${esc(p.key)}"${p.key===ref?" selected":""}>${esc(p.label)}</option>`).join("")
+    : `<option>No phones selected</option>`;
+  sel.disabled = !its.length;
+  const hasDuo = state.sel.includes(DUO_NAME);
+  document.querySelectorAll("[data-duo]").forEach(b=>{ b.setAttribute("aria-pressed", b.dataset.duo===state.duo); b.disabled = !hasDuo; });
+  document.querySelectorAll("[data-anchor]").forEach(b=>b.setAttribute("aria-pressed", b.dataset.anchor===state.anchor));
+  const r = document.getElementById("rotate");
+  r.disabled = !hasDuo || state.duo!=="unfolded";
+  r.setAttribute("aria-pressed", hasDuo && state.duo==="unfolded" && state.rotate);
+}
+
+function render(){ renderPicker(); renderControls(); renderStage(); renderBelow(); save(); }
+function renderHover(){ renderStage(); renderBelow(); }
+
+function toggle(name){
+  const i = state.sel.indexOf(name);
+  if (i>=0) state.sel.splice(i,1);
+  else { state.sel.push(name); if (state.sel.length>MAX) state.sel.shift(); }
+  if (hover && !state.sel.includes(hover)) hover = null;
+  render();
+}
+
+document.addEventListener("click", e=>{
+  const chip = e.target.closest(".chip"); if (chip) return toggle(chip.dataset.name);
+  const rm = e.target.closest("[data-remove]"); if (rm) return toggle(rm.dataset.remove);
+  const sr = e.target.closest("[data-setref]"); if (sr) { state.ref = sr.dataset.setref; return render(); }
+  const d = e.target.closest("[data-duo]"); if (d) { state.duo = d.dataset.duo; return render(); }
+  const a = e.target.closest("[data-anchor]"); if (a) { state.anchor = a.dataset.anchor; return render(); }
+  if (e.target.closest("#rotate")) { state.rotate = !state.rotate; return render(); }
+  if (e.target.closest("#clear")) { state.sel = []; hover = null; return render(); }
+});
+document.getElementById("ref").addEventListener("change", e=>{ state.ref = e.target.value; render(); });
+document.addEventListener("mouseover", e=>{
+  const el = e.target.closest("[data-key]"); if (!el) return;
+  if (el.dataset.key!==hover){ hover = el.dataset.key; renderHover(); }
+});
+document.addEventListener("mouseout", e=>{
+  const el = e.target.closest("[data-key]"); if (!el) return;
+  const to = e.relatedTarget && e.relatedTarget.closest && e.relatedTarget.closest("[data-key]");
+  if (to && to.dataset.key===el.dataset.key) return;
+  hover = null; renderHover();
+});
+render();
+</script>
